@@ -20,16 +20,6 @@ class Data:
         Path to the folder where the DataLoader objects are stored.
     loaders : dict[str, DataLoader]
         DataLoader objects for training, testing, and validation.
-    _name : str
-        Name of the DataLoader object.
-    _target : str
-        Target column.
-    _train_size : int
-        Size of training data.
-    _test_size : int
-        Size of testing data.
-    _validation_size : int
-        Size of validation data.
 
     Public Methods
     --------------
@@ -70,26 +60,26 @@ class Data:
         """
         self.df = df
         self.batch_size = batch_size
-        self._target = target
+        self.__target = target
 
         if abs(train_size + test_size + validation_size - 1) > 1e-5:
             raise ValueError('Sum of sizes must be equal to 1')
         elif train_size < 0 or test_size < 0 or (validation_size is not None and validation_size < 0):
             raise ValueError('Sizes must be positive')
-        self._train_size = int(train_size * len(df))
-        self._test_size = int(test_size * len(df))
-        self._validation_size = len(df) - self._train_size - self._test_size
+        self.__train_size = int(train_size * len(df))
+        self.__test_size = int(test_size * len(df))
+        self.__validation_size = len(df) - self.__train_size - self.__test_size
 
         self.path = path
         if not os.path.exists(self.path):
             os.makedirs(self.path)
 
-        self._name = self._get_name()
-        self.loaders, from_folder = self._load()
+        self.__name = self.__get_name()
+        self.loaders, from_folder = self.__load()
         if not from_folder:
-            self._save()
+            self.__save()
 
-    def _get_name(self) -> str:
+    def __get_name(self) -> str:
         """
         Get the name of the DataLoader object to be saved (using all the parameters).
 
@@ -99,15 +89,15 @@ class Data:
             Name of the DataLoader object.
         """
         name = ''
-        name += f'target={self._target}_'
-        name += f'train={self._train_size}_'
-        name += f'test={self._test_size}_'
-        name += f'validation={self._validation_size}_'
+        name += f'target={self.__target}_'
+        name += f'train={self.__train_size}_'
+        name += f'test={self.__test_size}_'
+        name += f'validation={self.__validation_size}_'
         name += f'batch={self.batch_size}'
 
         return name
 
-    def _get_loaders(self) -> dict[str, DataLoader]:
+    def __get_loaders(self) -> dict[str, DataLoader]:
         """
         Get DataLoader objects from the DataFrame.
 
@@ -116,12 +106,12 @@ class Data:
         dict[str, DataLoader]
             DataLoader objects of the DataFrame for training, testing, and validation.
         """
-        features = torch.tensor(self.df.drop(columns=[self._target]).values).float()
-        target = torch.tensor(self.df[self._target].values).float()
+        features = torch.tensor(self.df.drop(columns=[self.__target]).values).float()
+        target = torch.tensor(self.df[self.__target].values).float()
         dataset = TensorDataset(features, target)
 
         train_dataset, test_dataset, validation_dataset = random_split(
-            dataset, [self._train_size, self._test_size, self._validation_size])
+            dataset, [self.__train_size, self.__test_size, self.__validation_size])
 
         train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
         test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
@@ -129,7 +119,7 @@ class Data:
 
         return {'train': train_loader, 'test': test_loader, 'validation': validation_loader}
 
-    def _get_loaders_from_folder(self) -> dict[str, DataLoader]:
+    def __get_loaders_from_folder(self) -> dict[str, DataLoader]:
         """
         Get DataLoader objects from the folder.
 
@@ -143,12 +133,12 @@ class Data:
 
         loaders = {'train': None, 'test': None, 'validation': None}
         for key in loaders.keys():
-            loader_name = f'{self._name}_type={key}.pt'
+            loader_name = f'{self.__name}_type={key}.pt'
             loaders[key] = torch.load(os.path.join(self.path, loader_name))
 
         return loaders
 
-    def _load(self) -> Tuple[dict[str, DataLoader], bool]:
+    def __load(self) -> Tuple[dict[str, DataLoader], bool]:
         """
         Load DataLoader objects.
 
@@ -158,11 +148,11 @@ class Data:
             Tuple of DataLoader objects and boolean indicating if DataLoader objects were loaded from folder.
         """
         try:
-            return self._get_loaders_from_folder(), True
+            return self.__get_loaders_from_folder(), True
         except (FileNotFoundError, ValueError):
-            return self._get_loaders(), False
+            return self.__get_loaders(), False
 
-    def _save(self) -> None:
+    def __save(self) -> None:
         """
         Save DataLoader objects into the folder.
 
@@ -179,5 +169,5 @@ class Data:
             raise ValueError('Path is not defined')
 
         for key, loader in self.loaders.items():
-            loader_name = f'{self._name}_type={key}.pt'
+            loader_name = f'{self.__name}_type={key}.pt'
             torch.save(loader, os.path.join(self.path, loader_name))

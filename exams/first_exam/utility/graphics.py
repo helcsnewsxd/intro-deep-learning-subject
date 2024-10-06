@@ -66,11 +66,11 @@ class Graphics:
         self.target = target
         self.path = path
 
-        (self.histograms, self.corr), loaded = self._load_plots()
+        (self.histograms, self.corr), loaded = self.__load_plots()
         if not loaded and self.path is not None:
-            self._save_plots()
+            self.__save_plots()
 
-    def _get_single_histogram(
+    def __get_single_histogram(
             self, x: str, y: str = None, z: str = None, nbins: int = None, has_box: bool = False) -> Image.Image:
         """
         Get a single histogram.
@@ -112,7 +112,7 @@ class Graphics:
         fig_img = Image.open(BytesIO(fig.to_image(format='png')))
         return fig_img
 
-    def _get_all_histograms(self) -> List[Image.Image]:
+    def __get_all_histograms(self) -> List[Image.Image]:
         """
         Get all histograms.
 
@@ -129,12 +129,12 @@ class Graphics:
 
             has_box = self.df[x].nunique() > 2
 
-            fig = self._get_single_histogram(x=x, y=self.target, nbins=nbins, has_box=has_box)
+            fig = self.__get_single_histogram(x=x, y=self.target, nbins=nbins, has_box=has_box)
             fig_list.append(fig)
 
         return fig_list
 
-    def _get_correlation_matrix(self) -> Image.Image:
+    def __get_correlation_matrix(self) -> Image.Image:
         """
         Get correlation matrix.
 
@@ -153,7 +153,7 @@ class Graphics:
         fig_img = Image.open(BytesIO(fig.to_image(format='png')))
         return fig_img
 
-    def _get_plots_from_folder(self) -> List[Image.Image]:
+    def __get_plots_from_folder(self) -> List[Image.Image]:
         """
         Get plots from folder.
 
@@ -186,7 +186,7 @@ class Graphics:
 
         return images
 
-    def _load_plots(self) -> Tuple[Tuple[List[Image.Image], Image.Image], bool]:
+    def __load_plots(self) -> Tuple[Tuple[List[Image.Image], Image.Image], bool]:
         """
         Load plots.
 
@@ -197,16 +197,16 @@ class Graphics:
         """
 
         try:
-            plots = self._get_plots_from_folder()
+            plots = self.__get_plots_from_folder()
             histograms = [img for img in plots if img.filename.startswith('histogram')]
             corr = [img for img in plots if img.filename.startswith('correlation')][0]
             return (histograms, corr), True
         except (ValueError, FileNotFoundError):
-            histograms = self._get_all_histograms()
-            corr = self._get_correlation_matrix()
+            histograms = self.__get_all_histograms()
+            corr = self.__get_correlation_matrix()
             return (histograms, corr), False
 
-    def _save_plots(self) -> None:
+    def __save_plots(self) -> None:
         """
         Save plots.
 
