@@ -140,6 +140,8 @@ class MLP(nn.Module):
         Save the model and performance to the folder path.
     load_model(folder_path: str, model_name: str)
         Load the model and performance from the folder path.
+    show_performance()
+        Show the performance of the model (print and plot).
     """
 
     def __init__(
@@ -453,9 +455,9 @@ class MLP(nn.Module):
         self.load_state_dict(torch.load(os.path.join(folder_path, model_name + '_model.pt')))
         self.performance = pd.read_csv(os.path.join(folder_path, model_name + '_performance.csv'))
 
-    def plot_performance(self) -> None:
+    def show_performance(self) -> None:
         """
-        Plot the performance of the model.
+        Show the performance of the model (print and plot).
 
         Raises
         ------
@@ -469,6 +471,16 @@ class MLP(nn.Module):
         if self.performance is None:
             raise ValueError("Model has not been trained yet.")
 
+        print("=" * 50 + " PERFORMANCE " + "=" * 50)
+
+        # Print best performance
+        best_epoch = self.performance['test_loss'].idxmin()
+        best_performance = self.performance.iloc[best_epoch]
+        print(f"Best Performance at Epoch {best_performance['epoch']}\n"
+              f"\tTrain Loss: {best_performance['train_loss']:.4f}, Train Accuracy: {best_performance['train_accuracy']:.4f}, Train F1: {best_performance['train_f1']:.4f}\n"
+              f"\tTest Loss: {best_performance['test_loss']:.4f}, Test Accuracy: {best_performance['test_accuracy']:.4f}, Test F1: {best_performance['test_f1']:.4f}")
+
+        # Plot performance
         fig_loss = px.line(
             self.performance,
             x='epoch',
