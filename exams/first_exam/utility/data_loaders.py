@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import List, Tuple
+from typing import Tuple
 import os
 
 import torch
@@ -20,6 +20,8 @@ class Data:
         Path to the folder where the DataLoader objects are stored.
     loaders : dict[str, DataLoader]
         DataLoader objects for training, testing, and validation.
+    random_seed : int
+        Random seed.
 
     Public Methods
     --------------
@@ -28,7 +30,7 @@ class Data:
 
     def __init__(
             self, df: pd.DataFrame, target: str, train_size: float, test_size: float, validation_size: float = 0,
-            batch_size: int = 64, path: str = None):
+            batch_size: int = 64, path: str = None, random_seed: int = None) -> None:
         """
         Initialize the Data class.
 
@@ -48,6 +50,8 @@ class Data:
             Batch size.
         path : str
             Path to the folder where the DataLoader objects are stored.
+        random_seed : int
+            Random seed.
 
         Raises
         ------
@@ -78,6 +82,9 @@ class Data:
         self.loaders, from_folder = self.__load()
         if not from_folder:
             self.__save()
+
+        if random_seed is not None:
+            torch.manual_seed(random_seed)
 
     def __get_name(self) -> str:
         """

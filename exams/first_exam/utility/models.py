@@ -147,7 +147,7 @@ class MLP(nn.Module):
     def __init__(
             self, input_size: int, hidden_size: List[int],
             output_size: int, activation_function: nn.Module = nn.ReLU(),
-            dropout: float = 0.0) -> None:
+            dropout: float = 0.0, random_seed: int = 0) -> None:
         """
         Initialize the MLP model.
 
@@ -163,6 +163,8 @@ class MLP(nn.Module):
             The activation function to use.
         dropout : float, optional
             The dropout rate.
+        random_seed : int, optional
+            The random seed.
 
         Returns
         -------
@@ -180,6 +182,8 @@ class MLP(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
         self.performance = None
+
+        torch.manual_seed(random_seed)
 
     def reset_parameters(self) -> None:
         """
