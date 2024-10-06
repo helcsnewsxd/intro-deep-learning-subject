@@ -7,15 +7,75 @@ from torch.utils.data import random_split, TensorDataset, DataLoader
 
 
 class Data:
+    """
+    Class for creating DataLoader objects.
+
+    Attributes
+    ----------
+    df : pd.DataFrame
+        DataFrame to be used for creating DataLoader objects.
+    batch_size : int
+        Batch size.
+    path : str
+        Path to the folder where the DataLoader objects are stored.
+    loaders : dict[str, DataLoader]
+        DataLoader objects for training, testing, and validation.
+    _name : str
+        Name of the DataLoader object.
+    _target : str
+        Target column.
+    _train_size : int
+        Size of training data.
+    _test_size : int
+        Size of testing data.
+    _validation_size : int
+        Size of validation data.
+
+    Public Methods
+    --------------
+    None
+    """
+
     def __init__(
             self, df: pd.DataFrame, target: str, train_size: float, test_size: float, validation_size: float = 0,
             batch_size: int = 64, path: str = None):
+        """
+        Initialize the Data class.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            DataFrame to be used for creating DataLoader objects.
+        target : str
+            Target column.
+        train_size : float
+            Proportion of training data.
+        test_size : float
+            Proportion of testing data.
+        validation_size : float
+            Proportion of validation data.
+        batch_size : int
+            Batch size.
+        path : str
+            Path to the folder where the DataLoader objects are stored.
+
+        Raises
+        ------
+        ValueError
+            If sum of sizes is not equal to 1 or if sizes are negative.
+
+        Returns
+        -------
+        None
+        """
         self.df = df
         self.batch_size = batch_size
         self._target = target
 
         if abs(train_size + test_size + validation_size - 1) > 1e-5:
             raise ValueError('Sum of sizes must be equal to 1')
+        elif train_size < 0 or test_size < 0 or (validation_size is not None and validation_size < 0):
+            raise ValueError('Sizes must be positive')
         self._train_size = int(train_size * len(df))
         self._test_size = int(test_size * len(df))
         self._validation_size = len(df) - self._train_size - self._test_size
@@ -30,6 +90,14 @@ class Data:
             self._save()
 
     def _get_name(self) -> str:
+        """
+        Get the name of the DataLoader object to be saved (using all the parameters).
+
+        Returns
+        -------
+        str
+            Name of the DataLoader object.
+        """
         name = ''
         name += f'target={self._target}_'
         name += f'train={self._train_size}_'
@@ -40,6 +108,14 @@ class Data:
         return name
 
     def _get_loaders(self) -> dict[str, DataLoader]:
+        """
+        Get DataLoader objects from the DataFrame.
+
+        Returns
+        -------
+        dict[str, DataLoader]
+            DataLoader objects of the DataFrame for training, testing, and validation.
+        """
         features = torch.tensor(self.df.drop(columns=[self._target]).values).float()
         target = torch.tensor(self.df[self._target].values).float()
         dataset = TensorDataset(features, target)
@@ -54,6 +130,14 @@ class Data:
         return {'train': train_loader, 'test': test_loader, 'validation': validation_loader}
 
     def _get_loaders_from_folder(self) -> dict[str, DataLoader]:
+        """
+        Get DataLoader objects from the folder.
+
+        Returns
+        -------
+        dict[str, DataLoader]
+            DataLoader objects of the DataFrame for training, testing, and validation.
+        """
         if self.path is None:
             raise ValueError('Path is not defined')
 
@@ -65,12 +149,32 @@ class Data:
         return loaders
 
     def _load(self) -> Tuple[dict[str, DataLoader], bool]:
+        """
+        Load DataLoader objects.
+
+        Returns
+        -------
+        Tuple[dict[str, DataLoader], bool]
+            Tuple of DataLoader objects and boolean indicating if DataLoader objects were loaded from folder.
+        """
         try:
             return self._get_loaders_from_folder(), True
         except (FileNotFoundError, ValueError):
             return self._get_loaders(), False
 
     def _save(self) -> None:
+        """
+        Save DataLoader objects into the folder.
+
+        Raises
+        ------
+        ValueError
+            If path is not defined.
+
+        Returns
+        -------
+        None
+        """
         if self.path is None:
             raise ValueError('Path is not defined')
 
