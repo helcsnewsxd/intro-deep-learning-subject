@@ -457,7 +457,7 @@ class MLP(nn.Module):
             raise FileNotFoundError("Performance file does not exist.")
 
         self.load_state_dict(torch.load(os.path.join(folder_path, model_name + '_model.pt')))
-        self.performance = pd.read_csv(os.path.join(folder_path, model_name + '_performance.csv'))
+        self.performance = pd.read_csv(os.path.join(folder_path, model_name + '_performance.csv'), index_col=0)
 
     def show_performance(self) -> None:
         """
