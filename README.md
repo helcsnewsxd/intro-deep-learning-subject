@@ -25,3 +25,11 @@ Este repositorio contiene el material de la materia Introducción al Aprendizaje
 </div>
 
 ### Trabajos Prácticos
+
+<div align='center'>
+
+| Trabajo Práctico                           | Desarrollo                                      |
+| ------------------------------------------ | ----------------------------------------------- |
+| Trabajo Práctico 1: Predicción de diabetes | [Notebook](./exams/first_exam/desarrollo.ipynb) |
+
+</div>
