@@ -17,6 +17,41 @@ from typing import List, Tuple
 from tqdm import tqdm
 
 
+def compare_models_performance(model_performances: List[pd.DataFrame]):
+    """
+    Compare the performance of multiple models over epochs.
+
+    Parameters
+    ----------
+    model_performances : List[pd.DataFrame]
+        List of performance DataFrames for multiple models.
+
+    Returns
+    -------
+    None
+    """
+    figs = {}
+
+    for col in model_performances[0].columns:
+        if col.startswith('train') or col.startswith('test'):
+            fig = px.line(title=f"{col} over Epochs")
+            for i, performance in enumerate(model_performances):
+                fig.add_scatter(x=performance['epoch'], y=performance[col], name=f'Model {i + 1}')
+
+            figs[col] = Image.open(BytesIO(fig.to_image(format='png')))
+
+    # Images in 3x2 grid
+    img_grid = Image.new('RGB', (figs['train_loss'].width * 2, figs['train_loss'].height * 3))
+    img_grid.paste(figs['train_loss'], (0, 0))
+    img_grid.paste(figs['test_loss'], (figs['train_loss'].width, 0))
+    img_grid.paste(figs['train_accuracy'], (0, figs['train_loss'].height))
+    img_grid.paste(figs['test_accuracy'], (figs['train_loss'].width, figs['train_loss'].height))
+    img_grid.paste(figs['train_f1'], (0, figs['train_loss'].height * 2))
+    img_grid.paste(figs['test_f1'], (figs['train_loss'].width, figs['train_loss'].height * 2))
+
+    display(img_grid)
+
+
 class _EarlyStopping:
     """
     Early stopping to stop the training when the loss does not improve after certain epochs.
@@ -136,6 +171,8 @@ class MLP(nn.Module):
     fit(n_epochs: int, train_loader: DataLoader, test_loader: DataLoader, loss_function: nn.Module,
         optimizer: optim.Optimizer, device: torch.device, early_stop_params: dict = None)
         Fit the model to the data, evaluate it, and save the performance.
+    predict(data_loader: DataLoader, device: torch.device) -> List[int]
+        Predict the data using the model.
     save_model(folder_path: str, model_name: str)
         Save the model and performance to the folder path.
     load_model(folder_path: str, model_name: str)
@@ -405,6 +442,72 @@ class MLP(nn.Module):
             self.load_state_dict(early_stopping.best_model.state_dict())
 
         self.performance = pd.DataFrame(performance)
+
+    def predict(self, data_loader: DataLoader, device: torch.device) -> List[int]:
+        """
+        Predict the data using the model.
+
+        Parameters
+        ----------
+        data_loader : DataLoader
+            The data loader to predict.
+        device : torch.device
+            The device to use.
+
+        Returns
+        -------
+        List[int]
+            The predicted labels.
+        """
+        self.eval()
+
+        y_pred = []
+
+        with torch.no_grad():
+            for inputs, _ in data_loader:
+                inputs = inputs.to(device)
+
+                outputs = self(inputs.view(inputs.shape[0], -1))
+
+                _, predicted = torch.max(outputs, 1)
+                y_pred.extend(predicted.cpu().numpy())
+
+        return y_pred
+
+    def validate(self, validation_loader: DataLoader, device: torch.device) -> Tuple[float, float]:
+        """
+        Validate the model using the validation data.
+
+        Parameters
+        ----------
+        validation_loader : DataLoader
+            The validation data loader.
+        device : torch.device
+            The device to use.
+
+        Returns
+        -------
+        Tuple[float, float]
+            The accuracy and F1 score.
+        """
+        self.eval()
+
+        y_true, y_pred = [], []
+
+        with torch.no_grad():
+            for inputs, labels in validation_loader:
+                inputs, labels = inputs.to(device), labels.to(device)
+
+                outputs = self(inputs.view(inputs.shape[0], -1))
+
+                _, predicted = torch.max(outputs, 1)
+                y_true.extend(labels.cpu().numpy())
+                y_pred.extend(predicted.cpu().numpy())
+
+        accuracy = accuracy_score(y_true, y_pred)
+        f1 = f1_score(y_true, y_pred, average='macro')
+
+        return accuracy, f1
 
     def save(self, folder_path: str, model_name: str) -> None:
         """
