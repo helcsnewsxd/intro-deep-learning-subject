@@ -33,8 +33,9 @@ Este repositorio contiene el material de la materia Introducción al Aprendizaje
 
 <div align='center'>
 
-| Trabajo Práctico                           | Desarrollo                                      |
-| ------------------------------------------ | ----------------------------------------------- |
-| Trabajo Práctico 1: Predicción de diabetes | [Notebook](./exams/first_exam/desarrollo.ipynb) |
+| Trabajo Práctico                                        | Desarrollo                                      |
+| ------------------------------------------------------- | ----------------------------------------------- |
+| Trabajo Práctico 1: Predicción de diabetes              | [Notebook](./exams/first_exam/desarrollo.ipynb) |
+| Trabajo Práctico 2: Predicción de especies de mariposas | [Notebook](./exams/second_exam/solution.ipynb)  |
 
 </div>
