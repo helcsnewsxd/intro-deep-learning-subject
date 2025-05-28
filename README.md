@@ -1,3 +1,8 @@
+> [!note]
+> This repository contains theoretical materials, lecture notes, and practical assignments for the Introduction to Deep Learning course of the Data Science Diploma at FAMAF – Universidad Nacional de Córdoba.
+>
+> All materials are in Spanish, as they were developed for academic purposes and course submission.
+
 # Diplomatura en Ciencia de Datos, Aprendizaje Automático y sus Aplicaciones - 2024
 
 ## Introducción al Aprendizaje Profundo
